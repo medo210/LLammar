@@ -41,7 +41,7 @@
 
     <div style="margin-top:10px">
       <label>Features (optional):</label><br/>
-      <textarea id="features" rows="3" style="width:100%;max-width:100%;">ضمان 30 يوم، شحن مجاني، عرض لفترة محدودة</textarea>
+      <textarea id="features" rows="3" style="width:100%;max-width:100%;"></textarea>
     </div>
 
     <hr />
