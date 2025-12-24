@@ -1,0 +1,127 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register web routes for your application. These
+| routes are loaded by the RouteServiceProvider and all of them will
+| be assigned to the "web" middleware group. Make something great!
+|
+*/
+
+Route::get('/', function () {
+    return view('welcome');
+});
+
+Route::get("/generator", function () {
+    return "<h1>Generator OK ✅</h1><p>Next: upload + generate.</p>";
+});
+
+
+Route::get("/generator", function () {
+    $csrf = csrf_token();
+    return <<<HTML
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Generator</title>
+</head>
+<body style="font-family:system-ui,Arial;max-width:900px;margin:40px auto;padding:0 16px;">
+  <h1>Landing Page Generator</h1>
+
+  <div style="display:grid;gap:10px;max-width:520px;">
+    <input id="file" type="file" accept="image/*" />
+    <button id="uploadBtn" style="padding:10px 14px;">1) Upload Image</button>
+
+    <label>Language</label>
+    <select id="lang">
+      <option>Arabic (MSA)</option>
+      <option>Arabic (Egyptian Colloquial)</option>
+      <option selected>English</option>
+      <option>French</option>
+      <option>Spanish</option>
+      <option>German</option>
+    </select>
+
+    <label>Features (optional)</label>
+    <textarea id="features" rows="5" placeholder="e.g. 30-day money-back guarantee, free shipping, 50% off today" style="padding:10px;"></textarea>
+
+    <button id="genBtn" disabled style="padding:10px 14px;">2) Generate (next step)</button>
+  </div>
+
+  <p id="status" style="margin-top:16px;"></p>
+
+  <div style="margin-top:14px;">
+    <img id="preview" style="display:none;max-width:100%;border:1px solid #ddd;border-radius:8px;" />
+  </div>
+
+<script>
+let uploadedPaths = [];
+
+const statusEl = document.getElementById("status");
+const previewEl = document.getElementById("preview");
+
+document.getElementById("uploadBtn").addEventListener("click", async () => {
+  const f = document.getElementById("file").files[0];
+  if (!f) { statusEl.textContent = "Choose an image first."; return; }
+
+  statusEl.textContent = "Uploading...";
+  const fd = new FormData();
+  for (const file of document.getElementById("file").files) { fd.append("images[]", file); }
+
+  const res = await fetch("/api/upload", {
+    method: "POST",
+    headers: { "Accept": "application/json" },
+    body: fd
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    statusEl.textContent = "Upload error: " + (data.message || "unknown");
+    return;
+  }
+
+  uploadedPaths = (data.items || []).map(x => x.path);
+  statusEl.textContent = "Uploaded ✅";
+  previewEl.src = (data.items previewEl.src = data.url;previewEl.src = data.url; data.items[0]) ? data.items[0].url : "";
+  previewEl.style.display = "block";
+  document.getElementById("genBtn").disabled = false;
+});
+
+document.getElementById("genBtn").addEventListener("click", async () => {
+  statusEl.textContent = "Generating... (may take up to ~2 minutes)";
+
+  const payload = {
+    paths: uploadedPaths,
+    language: document.getElementById("lang").value,
+    features: document.getElementById("features").value
+  };
+
+  const res = await fetch("/api/generate-image", {
+    method: "POST",
+    headers: {"Accept":"application/json","Content-Type":"application/json"},
+    body: JSON.stringify(payload)
+  });
+
+  const data = await res.json();
+  if (!res.ok || !data.ok) {
+    statusEl.textContent = "Generate error: " + (data.message || "unknown");
+    return;
+  }
+
+  statusEl.innerHTML = "Generated ✅ <a href=\"" + data.output_url + "\" download>Download</a>";
+  previewEl.src = data.output_url;
+  previewEl.style.display = "block";
+});
+</script>
+</body>
+</html>
+HTML;
+});
+
