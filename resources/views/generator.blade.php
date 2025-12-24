@@ -203,3 +203,65 @@ genBtn.addEventListener("click", async (e) => {
 </script>
 </body>
 </html>
+
+
+<!-- Image Size Selector (auto-injected) -->
+<div style="margin-top:12px;">
+  <label for="img_size" style="display:block;font-weight:bold;margin-bottom:5px;">
+    مقاس الصورة
+  </label>
+  <select id="img_size" style="width:100%;padding:8px;">
+    <option value="1080x1080">1080×1080 (مربع)</option>
+    <option value="1080x1350">1080×1350 (بوست)</option>
+    <option value="1080x1920" selected>1080×1920 (ستوري)</option>
+  </select>
+</div>
+
+
+<script>
+/* Prompt size hook (auto-injected) */
+(function () {
+  function getSize(){ return (document.getElementById('img_size')||{}).value || '1080x1920'; }
+
+  // If there's a buildPrompt function, wrap it
+  if (typeof window.buildPrompt === 'function' && !window.buildPrompt.__wrapped) {
+    const _bp = window.buildPrompt;
+    const wrapped = function (promptText) {
+      const size = getSize();
+      try { promptText = _bp(promptText); } catch(e) {}
+      if (typeof promptText !== 'string') promptText = String(promptText ?? '');
+      promptText = promptText.replace(/1080\s*[x\*]\s*1920/gi, '').trim();
+      return (promptText ? (promptText + "\n") : "") + `Image size: ${size}.`;
+    };
+    wrapped.__wrapped = true;
+    window.buildPrompt = wrapped;
+  }
+
+  // Also wrap fetch() payloads if prompt is being sent directly
+  if (typeof window.fetch === 'function' && !window.fetch.__wrapped) {
+    const _fetch = window.fetch;
+    const wrappedFetch = function (input, init) {
+      try {
+        const size = getSize();
+        if (init && init.body && typeof init.body === 'string') {
+          // JSON body
+          try {
+            const j = JSON.parse(init.body);
+            for (const k of ['prompt','text','input','message']) {
+              if (typeof j?.[k] === 'string') {
+                j[k] = j[k].replace(/1080\s*[x\*]\s*1920/gi, '').trim();
+                j[k] = (j[k] ? (j[k] + "\n") : "") + `Image size: ${size}.`;
+              }
+            }
+            init.body = JSON.stringify(j);
+          } catch(e) {}
+        }
+      } catch(e) {}
+      return _fetch.apply(this, arguments);
+    };
+    wrappedFetch.__wrapped = true;
+    window.fetch = wrappedFetch;
+  }
+})();
+</script>
+
