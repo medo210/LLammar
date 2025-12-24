@@ -171,12 +171,12 @@ High-converting, clean but energetic, product-centric, persuasive typography.";
     $allowedSize = ['1K','2K','4K'];
     if (!in_array($imageSize, $allowedSize, true)) { $imageSize = '1K'; }
 
-    \Log::info('GEN_IMG_OPTS', ['aspect_ratio'=>$aspectRatio,'image_size'=>$imageSize,'model'=>$modelId ?? null]);
 $imageReq = [
         "contents" => [[ "parts" => $parts ]],
 
         "generationConfig" => [
-            "responseModalities" => ["IMAGE"],
+            "responseModalities" => ["IMAGE"]
+        
       "imageConfig" => [
         "aspectRatio" => $aspectRatio,
         "imageSize" => $imageSize,

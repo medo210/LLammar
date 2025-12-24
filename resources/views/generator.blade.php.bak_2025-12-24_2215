@@ -272,29 +272,6 @@
     <div style="margin-top:10px">
       <label>Features (optional):</label><br/>
       <textarea id="features" rows="3" style="width:100%;max-width:100%;"></textarea>
-
-<!-- GEMINI_IMAGE_OPTIONS_FORCE -->
-<div style="margin:15px 0;border:1px solid #ccc;padding:10px;border-radius:10px;">
-  <div style="font-weight:900;margin-bottom:8px;">إعدادات Gemini للصورة</div>
-
-  <label style="display:block;font-weight:700;margin:6px 0;">نسبة الصورة (Aspect Ratio)</label>
-  <select id="aspect_ratio" name="aspect_ratio" style="width:100%;padding:10px;">
-    <option value="1:1" selected>مربع (1:1)</option>
-    <option value="9:16">ستوري/عمودي (9:16)</option>
-    <option value="16:9">أفقي (16:9)</option>
-    <option value="3:4">عمودي (3:4)</option>
-    <option value="4:3">أفقي (4:3)</option>
-  </select>
-
-  <label style="display:block;font-weight:700;margin:10px 0 6px;">حجم الصورة (Image Size)</label>
-  <select id="image_size" name="image_size" style="width:100%;padding:10px;">
-    <option value="1K" selected>1K</option>
-    <option value="2K">2K</option>
-    <option value="4K">4K</option>
-  </select>
-</div>
-<!-- /GEMINI_IMAGE_OPTIONS_FORCE -->
-
     </div>
 
     <hr />
@@ -454,62 +431,6 @@ genBtn.addEventListener("click", async (e) => {
   }
 });
 </script>
-
-<script id="geminiOptSync">
-document.addEventListener('DOMContentLoaded', function(){
-  var a=document.getElementById('aspect_ratio');
-  var s=document.getElementById('image_size');
-  var ah=document.getElementById('aspect_ratio_hidden');
-  var sh=document.getElementById('image_size_hidden');
-
-  function sync(){
-    if (a && ah) ah.value = a.value || '1:1';
-    if (s && sh) sh.value = s.value || '1K';
-  }
-  if (a) a.addEventListener('change', sync);
-  if (s) s.addEventListener('change', sync);
-  sync();
-});
-</script>
-
-
-<script id="geminiFetchPatch">
-(function(){
-  if (window.__geminiFetchPatchApplied) return;
-  window.__geminiFetchPatchApplied = true;
-
-  const origFetch = window.fetch;
-  window.fetch = function(input, init){
-    try{
-      const url = (typeof input === 'string') ? input : (input && input.url) || '';
-      if (url.includes('/api/') && init && init.body){
-        const ar  = (document.getElementById('aspect_ratio')||{}).value || '1:1';
-        const isz = (document.getElementById('image_size')||{}).value || '1K';
-
-        // FormData
-        if (typeof FormData !== 'undefined' && init.body instanceof FormData){
-          if (!init.body.has('aspect_ratio')) init.body.append('aspect_ratio', ar);
-          if (!init.body.has('image_size'))   init.body.append('image_size', isz);
-        }
-        // JSON string
-        else if (typeof init.body === 'string'){
-          try{
-            const obj = JSON.parse(init.body);
-            if (obj && typeof obj === 'object'){
-              if (!obj.aspect_ratio) obj.aspect_ratio = ar;
-              if (!obj.image_size)   obj.image_size   = isz;
-              init.body = JSON.stringify(obj);
-              init.headers = Object.assign({'Content-Type':'application/json'}, init.headers || {});
-            }
-          }catch(e){}
-        }
-      }
-    }catch(e){}
-    return origFetch(input, init);
-  };
-})();
-</script>
-
 </body>
 </html>
 

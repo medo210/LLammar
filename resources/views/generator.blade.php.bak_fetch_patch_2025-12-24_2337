@@ -472,44 +472,6 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 </script>
 
-
-<script id="geminiFetchPatch">
-(function(){
-  if (window.__geminiFetchPatchApplied) return;
-  window.__geminiFetchPatchApplied = true;
-
-  const origFetch = window.fetch;
-  window.fetch = function(input, init){
-    try{
-      const url = (typeof input === 'string') ? input : (input && input.url) || '';
-      if (url.includes('/api/') && init && init.body){
-        const ar  = (document.getElementById('aspect_ratio')||{}).value || '1:1';
-        const isz = (document.getElementById('image_size')||{}).value || '1K';
-
-        // FormData
-        if (typeof FormData !== 'undefined' && init.body instanceof FormData){
-          if (!init.body.has('aspect_ratio')) init.body.append('aspect_ratio', ar);
-          if (!init.body.has('image_size'))   init.body.append('image_size', isz);
-        }
-        // JSON string
-        else if (typeof init.body === 'string'){
-          try{
-            const obj = JSON.parse(init.body);
-            if (obj && typeof obj === 'object'){
-              if (!obj.aspect_ratio) obj.aspect_ratio = ar;
-              if (!obj.image_size)   obj.image_size   = isz;
-              init.body = JSON.stringify(obj);
-              init.headers = Object.assign({'Content-Type':'application/json'}, init.headers || {});
-            }
-          }catch(e){}
-        }
-      }
-    }catch(e){}
-    return origFetch(input, init);
-  };
-})();
-</script>
-
 </body>
 </html>
 

@@ -160,23 +160,22 @@ High-converting, clean but energetic, product-centric, persuasive typography.";
 
     $parts = array_merge([["text" => $promptText]], $imageParts);
 
-    
+    $imageReq = [
+        "contents" => [[ "parts" => $parts ]],
+
     // ✅ Gemini image options (Aspect Ratio + Image Size)
     $aspectRatio = request('aspect_ratio', '1:1');
     $imageSize   = request('image_size', '1K');
 
-    $allowedAspect = ['1:1','3:4','4:3','9:16','16:9'];
+    $allowedAspect = ['1:1','3:4','4:3','9:16','16:9']; // official supported set (safe)
     if (!in_array($aspectRatio, $allowedAspect, true)) { $aspectRatio = '1:1'; }
 
-    $allowedSize = ['1K','2K','4K'];
+    $allowedSize = ['1K','2K','4K']; // must use uppercase K
     if (!in_array($imageSize, $allowedSize, true)) { $imageSize = '1K'; }
 
-    \Log::info('GEN_IMG_OPTS', ['aspect_ratio'=>$aspectRatio,'image_size'=>$imageSize,'model'=>$modelId ?? null]);
-$imageReq = [
-        "contents" => [[ "parts" => $parts ]],
-
         "generationConfig" => [
-            "responseModalities" => ["IMAGE"],
+            "responseModalities" => ["IMAGE"]
+        
       "imageConfig" => [
         "aspectRatio" => $aspectRatio,
         "imageSize" => $imageSize,
