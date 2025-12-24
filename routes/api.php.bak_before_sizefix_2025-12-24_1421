@@ -1,0 +1,201 @@
+<?php
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+
+Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+    return $request->user();
+});
+
+Route::post("/upload", function (\Illuminate\Http\Request $request) {
+    $files = [];
+
+    if ($request->hasFile("images")) {
+        $files = $request->file("images");
+    } elseif ($request->hasFile("image")) {
+        $files = [$request->file("image")];
+    }
+
+    if (!$files || count($files) === 0) {
+        return response()->json(["ok"=>false,"message"=>"No images provided. Use image or images[]"], 422);
+    }
+
+    foreach ($files as $f) {
+        if (!$f->isValid()) return response()->json(["ok"=>false,"message"=>"Invalid upload"], 422);
+        $extOk = in_array(strtolower($f->getClientOriginalExtension()), ["jpg","jpeg","png","webp"]);
+        if (!$extOk) return response()->json(["ok"=>false,"message"=>"Only jpg/jpeg/png/webp allowed"], 422);
+        if ($f->getSize() > 8 * 1024 * 1024) return response()->json(["ok"=>false,"message"=>"Max 8MB per image"], 422);
+    }
+
+    $out = [];
+    foreach ($files as $f) {
+        $path = $f->store("uploads", "public");
+        $out[] = ["path" => $path, "url" => asset("storage/" . $path)];
+    }
+
+    return response()->json(["ok" => true, "items" => $out]);
+});
+
+Route::post("/generate-image", function (\Illuminate\Http\Request $request) {
+    $request->validate([
+        "paths" => "required|array|min:1",
+        "paths.*" => "required|string",
+        "language" => "required|string",
+        "features" => "nullable|string",
+
+        "mode" => "nullable|string|in:full,sections",
+        "sections" => "nullable|array",
+        "sections.*" => "string|in:hero,before_after,authority,ingredients,faq,reviews",
+
+        "custom_section" => "nullable|array",
+        "custom_section.name" => "nullable|string|max:80",
+        "custom_section.description" => "nullable|string|max:500",
+    ]);
+
+    $apiKey = env("GEMINI_API_KEY");
+    if (!$apiKey) return response()->json(["ok"=>false,"message"=>"Missing GEMINI_API_KEY"], 500);
+
+    $paths    = $request->input("paths");
+    $language = $request->input("language");
+    $features = trim((string)$request->input("features", ""));
+
+    $mode = $request->input("mode", "full");
+    $sections = $request->input("sections", []);
+    $custom = $request->input("custom_section", []);
+    $customName = trim((string)($custom["name"] ?? ""));
+    $customDesc = trim((string)($custom["description"] ?? ""));
+
+    // Dialect instruction
+    $dialect = "";
+    if ($language === "Arabic (Egyptian Colloquial)") {
+        $dialect = "Write ALL copy in Egyptian Arabic (عامية مصرية) طبيعي وبأسلوب بيع مقنع، من غير فصحى.";
+    } elseif (stripos($language, "Arabic") !== false) {
+        $dialect = "Write the copy in Modern Standard Arabic (فصحى) بأسلوب تسويقي مقنع.";
+    } else {
+        $dialect = "Write the copy in the selected language with persuasive direct-response style.";
+    }
+
+    // Read uploaded images and attach
+    $imageParts = [];
+    foreach ($paths as $p) {
+        try {
+            $bin = \Illuminate\Support\Facades\Storage::disk("public")->get($p);
+        } catch (\Throwable $e) {
+            return response()->json(["ok"=>false,"message"=>"Cannot read uploaded image","path"=>$p,"error"=>$e->getMessage()], 500);
+        }
+
+        $mime = null;
+        try {
+            $abs = \Illuminate\Support\Facades\Storage::disk("public")->path($p);
+            $mime = @mime_content_type($abs) ?: null;
+        } catch (\Throwable $e) {}
+
+        if (!$mime) {
+            $ext = strtolower(pathinfo($p, PATHINFO_EXTENSION));
+            $mime = match ($ext) {
+                "jpg", "jpeg" => "image/jpeg",
+                "png" => "image/png",
+                "webp" => "image/webp",
+                default => "application/octet-stream",
+            };
+        }
+
+        $imageParts[] = ["inlineData" => ["mimeType" => $mime, "data" => base64_encode($bin)]];
+    }
+
+    // Section logic
+    $sectionTextMap = [
+        "hero" => "Hero Section — The Hook & Promise: product-centered hero, strong headline, CTA, trust badges.",
+        "before_after" => "Before/After — Proof & Transformation: clear visual comparison demonstrating results.",
+        "authority" => "Authority & Social Validation: expert endorsements, community trust indicators, guarantee/security.",
+        "ingredients" => "Ingredients/Mechanism: key components grid + mechanism explanation visuals.",
+        "faq" => "FAQ: frequently asked questions addressing objections.",
+        "reviews" => "Customer Reviews: testimonial cards, ratings, short believable quotes."
+    ];
+
+    $structureBlock = "";
+    if ($mode === "sections") {
+        if (empty($sections) && $customName === "") $sections = ["hero"];
+
+        $lines = [];
+        foreach ($sections as $s) {
+            if (isset($sectionTextMap[$s])) $lines[] = "- " . $sectionTextMap[$s];
+        }
+        if ($customName !== "") {
+            $lines[] = "- Custom Section: {$customName}" . ($customDesc ? " — {$customDesc}" : "");
+        }
+
+        $structureBlock =
+"Generate ONLY the following section(s) as ONE design (still 1080x1920):
+" . implode("\n", $lines) . "
+No other sections. Keep it conversion-focused and product-centric.";
+    } else {
+        $structureBlock =
+"Generate a FULL scrolling landing page layout (all-in-one):
+1) Hero
+2) Before/After
+3) Authority & Social Proof
+4) Ingredients/Mechanism
+(Optional if fitting: FAQ + Reviews)";
+    }
+
+    $promptText =
+"Create ONE landing page mockup image.
+FINAL OUTPUT IMAGE SIZE MUST BE EXACTLY 1080x1920 pixels (portrait, 9:16). No borders.
+All text must be readable on mobile.
+Direct-response marketing style.
+
+CRITICAL: Use the ATTACHED images. Image #1 is the exact product packshot; keep brand/logo/colors/packaging consistent.
+Use remaining images as supporting visuals (ingredients, lifestyle, proof, review-style cards).
+
+{$dialect}
+
+{$structureBlock}
+
+Features to include if provided: {$features}.
+High-converting, clean but energetic, product-centric, persuasive typography.";
+
+    $parts = array_merge([["text" => $promptText]], $imageParts);
+
+    $imageReq = [
+        "contents" => [[ "parts" => $parts ]],
+        "generationConfig" => [
+            "responseModalities" => ["IMAGE"]
+        ]
+    ];
+
+    $ch = curl_init("https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent");
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+        CURLOPT_HTTPHEADER => ["Content-Type: application/json", "x-goog-api-key: {$apiKey}"],
+        CURLOPT_POSTFIELDS => json_encode($imageReq),
+        CURLOPT_TIMEOUT => 180,
+    ]);
+    $resp = curl_exec($ch);
+    $http = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $err  = curl_error($ch);
+    curl_close($ch);
+
+    if ($resp === false) return response()->json(["ok"=>false,"message"=>"Image cURL error","error"=>$err], 500);
+
+    $data = json_decode($resp, true);
+    if ($http < 200 || $http >= 300) {
+        return response()->json(["ok"=>false,"message"=>"Image model error","http"=>$http,"raw"=>$data], 500);
+    }
+
+    $outParts = $data["candidates"][0]["content"]["parts"] ?? [];
+    $b64 = null;
+    foreach ($outParts as $p) {
+        if (isset($p["inlineData"]["data"])) { $b64 = $p["inlineData"]["data"]; break; }
+    }
+    if (!$b64) return response()->json(["ok"=>false,"message"=>"No inline image returned","raw"=>$data], 500);
+
+    $outBin = base64_decode($b64);
+    if ($outBin === false) return response()->json(["ok"=>false,"message"=>"base64 decode failed"], 500);
+
+    $name = "outputs/lp_" . date("Ymd_His") . "_" . bin2hex(random_bytes(4)) . ".png";
+    \Illuminate\Support\Facades\Storage::disk("public")->put($name, $outBin);
+
+    return response()->json(["ok" => true, "output_url" => asset("storage/" . $name)]);
+});

@@ -15,8 +15,238 @@
     .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
     hr{margin:18px 0;border:none;border-top:1px solid #eee}
   </style>
+
+<style>
+/* ===== Generator Pro UI (Canva/Midjourney-like) ===== */
+:root{
+  --bg1:#0b1020;
+  --bg2:#0a0f1a;
+  --card:#0f1730cc;
+  --card2:#0f1730;
+  --text:#e8ecff;
+  --muted:#a9b2d6;
+  --line:#273055;
+  --focus:#7c5cff;
+  --focus2:#22c55e;
+  --shadow: 0 20px 60px rgba(0,0,0,.45);
+  --r:16px;
+}
+
+.gen-pro-page{
+  min-height:100vh;
+  background:
+    radial-gradient(900px 600px at 20% 10%, rgba(124,92,255,.25), transparent 60%),
+    radial-gradient(900px 600px at 85% 15%, rgba(34,197,94,.18), transparent 60%),
+    radial-gradient(1200px 700px at 50% 110%, rgba(59,130,246,.12), transparent 60%),
+    linear-gradient(180deg, var(--bg1), var(--bg2));
+  color: var(--text);
+  padding: clamp(14px, 2.5vw, 26px);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Apple Color Emoji","Segoe UI Emoji";
+}
+
+.gen-pro-shell{
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.gen-pro-topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom: 14px;
+}
+
+.gen-pro-brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.gen-pro-logo{
+  width:40px;height:40px;border-radius:12px;
+  background: linear-gradient(135deg, rgba(124,92,255,.95), rgba(34,197,94,.85));
+  box-shadow: 0 10px 30px rgba(124,92,255,.25);
+}
+.gen-pro-title{
+  line-height:1.1;
+}
+.gen-pro-title b{display:block;font-size:16px;letter-spacing:.2px}
+.gen-pro-title span{display:block;font-size:12px;color:var(--muted)}
+.gen-pro-pill{
+  font-size:12px;
+  padding:8px 10px;
+  border:1px solid var(--line);
+  border-radius:999px;
+  color:var(--muted);
+  background: rgba(15,23,48,.55);
+}
+
+.gen-pro-grid{
+  display:grid;
+  grid-template-columns: 1.05fr .95fr;
+  gap: clamp(12px, 2vw, 18px);
+  align-items:start;
+}
+
+@media (max-width: 980px){
+  .gen-pro-grid{grid-template-columns:1fr}
+}
+
+.gen-pro-card{
+  border:1px solid rgba(39,48,85,.85);
+  background: linear-gradient(180deg, rgba(15,23,48,.78), rgba(15,23,48,.55));
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  overflow:hidden;
+}
+
+.gen-pro-cardhead{
+  padding: 14px 16px;
+  border-bottom:1px solid rgba(39,48,85,.7);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.gen-pro-cardhead h2{
+  margin:0;
+  font-size:14px;
+  letter-spacing:.2px;
+}
+.gen-pro-cardhead .hint{
+  font-size:12px;
+  color: var(--muted);
+}
+
+.gen-pro-cardbody{
+  padding: 14px 16px 16px;
+}
+
+/* Make existing forms look pro without changing HTML */
+.gen-pro-cardbody label{
+  display:block;
+  font-weight: 650;
+  font-size: 12px;
+  color: var(--text);
+  margin: 12px 0 6px;
+  letter-spacing:.2px;
+}
+.gen-pro-cardbody input[type="text"],
+.gen-pro-cardbody input[type="url"],
+.gen-pro-cardbody input[type="number"],
+.gen-pro-cardbody input[type="email"],
+.gen-pro-cardbody input[type="password"],
+.gen-pro-cardbody textarea,
+.gen-pro-cardbody select{
+  width:100% !important;
+  max-width:100% !important;
+  background: rgba(8,12,25,.7) !important;
+  color: var(--text) !important;
+  border: 1px solid rgba(39,48,85,.9) !important;
+  border-radius: 12px !important;
+  padding: 11px 12px !important;
+  outline: none !important;
+  transition: border-color .15s ease, box-shadow .15s ease, transform .08s ease;
+}
+.gen-pro-cardbody textarea{min-height: 120px; resize: vertical;}
+.gen-pro-cardbody input:focus,
+.gen-pro-cardbody textarea:focus,
+.gen-pro-cardbody select:focus{
+  border-color: rgba(124,92,255,.95) !important;
+  box-shadow: 0 0 0 4px rgba(124,92,255,.18) !important;
+}
+
+.gen-pro-row{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 560px){
+  .gen-pro-row{grid-template-columns:1fr}
+}
+
+.gen-pro-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-top: 14px;
+}
+.gen-pro-cardbody button,
+.gen-pro-cardbody input[type="submit"],
+.gen-pro-cardbody .btn,
+.gen-pro-cardbody a.button{
+  appearance:none;
+  border: 1px solid rgba(39,48,85,.9);
+  background: rgba(15,23,48,.75);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 11px 14px;
+  font-weight: 700;
+  cursor:pointer;
+  transition: transform .08s ease, border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.gen-pro-cardbody button:hover,
+.gen-pro-cardbody input[type="submit"]:hover{
+  border-color: rgba(124,92,255,.9);
+  box-shadow: 0 10px 30px rgba(124,92,255,.12);
+}
+.gen-pro-primary{
+  border-color: rgba(124,92,255,.95) !important;
+  background: linear-gradient(135deg, rgba(124,92,255,.95), rgba(59,130,246,.75)) !important;
+}
+.gen-pro-success{
+  border-color: rgba(34,197,94,.95) !important;
+  background: linear-gradient(135deg, rgba(34,197,94,.95), rgba(16,185,129,.7)) !important;
+}
+.gen-pro-cardbody button:active,
+.gen-pro-cardbody input[type="submit"]:active{
+  transform: translateY(1px);
+}
+
+.gen-pro-preview{
+  position: sticky;
+  top: 14px;
+}
+@media (max-width: 980px){
+  .gen-pro-preview{position: static;}
+}
+
+.gen-pro-stage{
+  border-radius: 14px;
+  border:1px dashed rgba(39,48,85,.85);
+  background: radial-gradient(700px 240px at 50% 0%, rgba(124,92,255,.12), transparent 55%),
+              rgba(8,12,25,.55);
+  padding: 14px;
+}
+
+.gen-pro-stage .box{
+  border-radius: 12px;
+  border:1px solid rgba(39,48,85,.7);
+  background: rgba(10,14,30,.55);
+  padding: 12px;
+}
+
+.gen-pro-empty{
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.gen-pro-footer{
+  margin-top: 14px;
+  color: var(--muted);
+  font-size: 12px;
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  flex-wrap:wrap;
+  opacity:.95;
+}
+</style>
+
 </head>
 <body>
+<!-- GEN_TEST_123 -->
   <h2>Landing Page Generator</h2>
 
   <div class="box">

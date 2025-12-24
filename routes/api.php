@@ -126,8 +126,11 @@ Route::post("/generate-image", function (\Illuminate\Http\Request $request) {
         }
 
         $structureBlock =
-"Generate ONLY the following section(s) as ONE design (still 1080x1920):
-" . implode("\n", $lines) . "
+"Generate ONLY the following section(s) as ONE design:
+"
+. implode("
+", $lines) .
+"
 No other sections. Keep it conversion-focused and product-centric.";
     } else {
         $structureBlock =
@@ -141,7 +144,7 @@ No other sections. Keep it conversion-focused and product-centric.";
 
     $promptText =
 "Create ONE landing page mockup image.
-FINAL OUTPUT IMAGE SIZE MUST BE EXACTLY 1080x1920 pixels (portrait, 9:16). No borders.
+
 All text must be readable on mobile.
 Direct-response marketing style.
 
