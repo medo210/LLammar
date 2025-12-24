@@ -516,13 +516,21 @@ document.addEventListener('DOMContentLoaded', function(){
 
 <!-- Image Size Selector (auto-injected) -->
 <div style="margin-top:12px;">
-  </div>
+  <label for="img_size" style="display:block;font-weight:bold;margin-bottom:5px;">
+    مقاس الصورة
+  </label>
+  <select id="img_size" style="width:100%;padding:8px;">
+    <option value="1080x1080">1080×1080 (مربع)</option>
+    <option value="1080x1350">1080×1350 (بوست)</option>
+    <option value="1080x1920" selected>1080×1920 (ستوري)</option>
+  </select>
+</div>
 
 
 <script>
 /* Prompt size hook (auto-injected) */
 (function () {
-  ).value || '1080x1920'; }
+  function getSize(){ return (document.getElementById('img_size')||{}).value || '1080x1920'; }
 
   // If there's a buildPrompt function, wrap it
   if (typeof window.buildPrompt === 'function' && !window.buildPrompt.__wrapped) {
