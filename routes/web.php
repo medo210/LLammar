@@ -9,3 +9,12 @@ Route::get('/', function () {
 Route::get("/generator", function () {
     return response()->make(view("generator"));
 });
+
+use App\Http\Controllers\CopyController;
+
+Route::get('/copy', function () {
+    return response()->make(view('copy'));
+});
+
+Route::post('/copy/generate', [CopyController::class, 'generate']);
+Route::post('/copy/upload-images', [\App\Http\Controllers\CopyController::class, 'uploadImages']);
