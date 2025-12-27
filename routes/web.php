@@ -18,3 +18,19 @@ Route::get('/copy', function () {
 
 Route::post('/copy/generate', [CopyController::class, 'generate']);
 Route::post('/copy/upload-images', [\App\Http\Controllers\CopyController::class, 'uploadImages']);
+
+use App\Http\Controllers\CollageController;
+
+Route::get('/collage', function () {
+    return response()->make(view('collage'));
+});
+
+Route::post('/collage/generate', [CollageController::class, 'generate']);
+
+use App\Http\Controllers\PosterController;
+
+Route::get('/poster', function () {
+    return response()->make(view('poster'));
+});
+
+Route::post('/poster/generate', [PosterController::class, 'generate']);
